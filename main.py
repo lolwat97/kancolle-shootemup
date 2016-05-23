@@ -72,6 +72,19 @@ class Projectile:
         self.posx += self.speedx
         self.posy += self.speedy
 
+class Projectiles:
+    projectiles = []
+    def addProjectile(self, posx, posy, speedx, speedy):
+        self.projectiles.append(Projectile(posx, posy, speedx, speedy))
+    def update(self):
+        for projectile in self.projectiles:
+            projectile.updatePosition()
+            if projectile.posy < -80: #TODO: sprite sizes
+                self.projectiles.remove(enemy)
+    def draw(self, screen):
+        for projectile in self.projectiles:
+            projectile.draw(screen)
+
 def loadResources():
     global waveSurface
     waveSurface = pygame.image.load('wave.png')
