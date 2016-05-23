@@ -41,8 +41,22 @@ class Enemy:
         self.posy += self.speedy
         if (self.posy > windowHeight - 80) or (self.posy < 0): #TODO: again, sprite sizes
             self.speedy = -self.speedy
-sampleEnemy = Enemy(560, 280, -1, 1)
 
+class Enemies:
+    enemies = []
+    def addEnemy(self, posx, posy, speedx, speedy):
+        self.enemies.append(Enemy(posx, posy, speedx, speedy))
+    def update(self):
+        for enemy in self.enemies:
+            enemy.updatePosition()
+            if enemy.posy < -80: #TODO: sprite sizes
+                self.enemies.remove(enemy)
+    def draw(self, screen):
+        for enemy in self.enemies:
+            enemy.draw(screen)
+
+enemies = Enemies();
+enemies.addEnemy(560, 280, -1, 2)
 
 class Projectile:
     def __init__(self, posx, posy, speedx, speedy):
@@ -88,11 +102,11 @@ def gameLoop():
         drawWaves(screen)
         player.draw(screen)
 
-        sampleEnemy.updatePosition()
-        sampleEnemy.draw(screen)
+        enemies.update()
+        enemies.draw(screen)
 
         pygame.display.flip()
-        print(1000 // dtime)
+        #print(1000 // dtime)
 
 loadResources()
 
