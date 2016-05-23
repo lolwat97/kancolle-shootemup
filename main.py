@@ -15,19 +15,51 @@ class Player:
     graphics = []
     graphics.append(pygame.transform.scale(pygame.image.load('tenryuu0.png'), (80, 80)))
     graphics.append(pygame.transform.scale(pygame.image.load('tenryuu1.png'), (80, 80)))
-    posx = 0
-    posy = windowHeight // 2 - 80
     animationCycle = 0
-    def drawPlayer(self, screen):
+    def draw(self, screen):
         screen.blit(self.graphics[self.animationCycle // 8], (self.posx, self.posy))
         self.animationCycle += 1
         self.animationCycle = self.animationCycle % 16
 player = Player(50, 280)
 
+class Enemy:
+    def __init__(self, posx, posy, speedx, speedy):
+        self.posx = posx
+        self.posy = posy
+        self.speedx = speedx
+        self.speedy = speedy
+    graphics = []
+    graphics.append(pygame.transform.scale(pygame.image.load('tenryuu0.png'), (80, 80))) #TODO: add graphics for enemies
+    graphics.append(pygame.transform.scale(pygame.image.load('tenryuu1.png'), (80, 80)))
+    animationCycle = 0
+    def draw(self, screen):
+        screen.blit(self.graphics[self.animationCycle // 8], (self.posx, self.posy))
+        self.animationCycle += 1
+        self.animationCycle = self.animationCycle % 16
+    def updatePosition(self): #TODO: update this so it complies with sprite sizes
+        self.posx += self.speedx
+        self.posy += self.speedy
+        if (self.posy > windowHeight - 80) or (self.posy < 0): #TODO: again, sprite sizes
+            self.speedy = -self.speedy
+sampleEnemy = Enemy(560, 280, -1, 1)
+
+
+class Projectile:
+    def __init__(self, posx, posy, speedx, speedy):
+        self.posx = posx
+        self.posy = posy
+        self.speedx = speedx
+        self.speedy = speedy
+    graphics = []
+    graphics.append(pygame.transform.scale(pygame.image.load('tenryuu0.png'), (80, 80)))
+    def draw(self, screen):
+        screen.blit(self.graphics[0], (self.posx, self.posy))
+    def updatePosition(self): #TODO: update this so it complies with sprite sizes
+        self.posx += self.speedx
+        self.posy += self.speedy
+
 def loadResources():
     global waveSurface
-    global tenryuuSurface0
-    global tenryuuSurface1
     waveSurface = pygame.image.load('wave.png')
 
 baseWaveSpeed = 2 
@@ -54,10 +86,13 @@ def gameLoop():
 
         screen.fill(pygame.Color('#496ddb'))
         drawWaves(screen)
-        player.drawPlayer(screen)
+        player.draw(screen)
+
+        sampleEnemy.updatePosition()
+        sampleEnemy.draw(screen)
 
         pygame.display.flip()
-        print(dtime)
+        print(1000 // dtime)
 
 loadResources()
 
