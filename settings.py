@@ -1,0 +1,1 @@
+windowSize = windowWidth, windowHeight = 1280, 640
