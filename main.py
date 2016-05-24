@@ -21,14 +21,22 @@ class Player:
         screen.blit(self.graphics[self.animationCycle // 8], (self.posx, self.posy))
         self.animationCycle += 1
         self.animationCycle = self.animationCycle % 16
+    def checkCollisions(self, projectiles, enemies):
+        self.checkProjectileCollisions(projectiles)
+        self.checkEnemyCollisions(enemies)
     def checkProjectileCollisions(self, projectiles):
         for projectile in projectiles.projectiles: #check collisions with projectiles, projectiles.projectiles is actual array inside Projectiles class
             if (self.graphics[0].get_rect().move(self.posx, self.posy).inflate(-50, -20).colliderect(projectile.graphics[0].get_rect().move(projectile.posx, projectile.posy))) and (not projectile.isPlayers): #holy fuck
                 self.lives -= 1
                 print('player hit, ' + str(self.lives) + ' lives left')
                 projectiles.projectiles.remove(projectile)
+    def checkEnemyCollisions(self, enemies):
+        for enemy in enemies.enemies: #check collisions with projectiles, projectiles.projectiles is actual array inside Projectiles class
+            if self.graphics[0].get_rect().move(self.posx, self.posy).inflate(-50, -20).colliderect(enemy.graphics[0].get_rect().move(enemy.posx, enemy.posy)): #holy fuck
+                self.lives -= 1
+                print('player hit, ' + str(self.lives) + ' lives left')
+                enemies.enemies.remove(enemy)
         
-
 class Enemy:
     def __init__(self, posx, posy, speedx, speedy):
         self.posx = posx
@@ -67,7 +75,6 @@ class Enemies:
         for enemy in self.enemies:
             enemy.draw(screen)
     def checkAndSpawn(self):
-        print(len(self.enemies))
         if len(self.enemies) <= 2:
             self.spawnWave()
     def spawnWave(self):
@@ -167,7 +174,7 @@ def gameLoop():
         screen.fill(pygame.Color('#496ddb'))
         drawWaves(screen)
 
-        player.checkProjectileCollisions(projectiles)
+        player.checkCollisions(projectiles, enemies)
         player.draw(screen)
 
         projectiles.update()
@@ -183,6 +190,6 @@ def gameLoop():
 loadResources()
 
 pygame.mixer.music.load('music.ogg') #kickass tunes
-pygame.mixer.music.play(-1) #it irritates me atm
+#pygame.mixer.music.play(-1) #it irritates me atm
 
 gameLoop()
