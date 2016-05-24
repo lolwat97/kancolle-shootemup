@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import pygame, sys, math, random
 from classes import Player, Enemy, Enemies, Projectile, Projectiles
 from settings import windowSize, windowWidth, windowHeight
