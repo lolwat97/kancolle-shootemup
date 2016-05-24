@@ -2,7 +2,7 @@ import pygame, sys, math, random
 
 pygame.init()
 
-windowSize = windowWidth, windowHeight = 640, 640
+windowSize = windowWidth, windowHeight = 1280, 640
 screen = pygame.display.set_mode(windowSize)
 pygame.display.set_caption('fuck') #TODO: change
 
@@ -28,13 +28,11 @@ class Player:
         for projectile in projectiles.projectiles: #check collisions with projectiles, projectiles.projectiles is actual array inside Projectiles class
             if (self.graphics[0].get_rect().move(self.posx, self.posy).inflate(-50, -20).colliderect(projectile.graphics[0].get_rect().move(projectile.posx, projectile.posy))) and (not projectile.isPlayers): #holy fuck
                 self.lives -= 1
-                print('player hit, ' + str(self.lives) + ' lives left')
                 projectiles.projectiles.remove(projectile)
     def checkEnemyCollisions(self, enemies):
         for enemy in enemies.enemies: #check collisions with projectiles, projectiles.projectiles is actual array inside Projectiles class
             if self.graphics[0].get_rect().move(self.posx, self.posy).inflate(-50, -20).colliderect(enemy.graphics[0].get_rect().move(enemy.posx, enemy.posy)): #holy fuck
                 self.lives -= 1
-                print('player hit, ' + str(self.lives) + ' lives left')
                 enemies.enemies.remove(enemy)
         
 class Enemy:
@@ -56,6 +54,13 @@ class Enemy:
         self.posy += self.speedy
         if (self.posy > windowHeight - 80) or (self.posy < 0): #TODO: again, sprite sizes
             self.speedy = -self.speedy
+    def fireProjectile(self, projectiles, tox, toy):
+        dx = tox - self.posx
+        dy = toy - self.posy
+        length = math.sqrt(dx**2 + dy**2)
+        firex = dx / length * 10
+        firey = dy / length * 10
+        projectiles.addProjectile(self.posx + 40, self.posy + 40, firex, firey, False)
 
 class Enemies:
     enemies = []
@@ -77,6 +82,10 @@ class Enemies:
     def checkAndSpawn(self):
         if len(self.enemies) <= 2:
             self.spawnWave()
+    def checkAndFire(self, projectiles, tox, toy, fireTimer):
+        for index in range(len(self.enemies)):
+            if fireTimer % 60 == index * 3:
+                self.enemies[index].fireProjectile(projectiles, tox, toy)
     def spawnWave(self):
         key = random.randint(0, 4)
         if key == 0:
@@ -131,15 +140,17 @@ class Projectiles:
     def update(self):
         for projectile in self.projectiles:
             projectile.updatePosition()
-            if projectile.posy < -80: #TODO: sprite sizes
-                self.projectiles.remove(enemy)
+            if projectile.posx < -80: #TODO: sprite sizes
+                self.projectiles.remove(projectile)
     def draw(self, screen):
         for projectile in self.projectiles:
             projectile.draw(screen)
 
 def loadResources():
     global waveSurface
+    global grassSurface
     waveSurface = pygame.image.load('wave.png')
+    grassSurface = pygame.transform.scale(pygame.image.load('grass.png'), (40,40))
 
 baseWaveSpeed = 2 
 waveSpacing = 0.3 #majic numbers
@@ -155,24 +166,76 @@ def drawWaves(screen):
         for j in range(0, windowWidth, int(waveSpacing*(windowHeight - abs(wavePositions[i][1] - windowHeight/2)))):
             screen.blit(waveSurface, (wavePositions[i][0]-j, wavePositions[i][1]))
 
+grassOffset = 0
+def drawGrass(screen):
+    global grassOffset
+    grassOffset -= 5
+    if grassOffset < -40:
+        grassOffset = 0
+    for i in range(0, windowWidth+40, 40):
+        screen.blit(grassSurface, (grassOffset + i, 20))
+
 
 def gameLoop():
     player = Player(50, 280, 3)
+    autofireTimer = 14
+    enemyFireTimer = 0
 
     enemies = Enemies()
     enemies.spawnWave()
 
     projectiles = Projectiles()
     projectiles.addProjectile(640, 300, -5, 0, False)
+    enemies.enemies[0].fireProjectile(projectiles, player.posx, player.posy)
+
 
     while 1:
+        oldx = player.posx
+        oldy = player.posy
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
+        
+        pressed = pygame.key.get_pressed()
+        
+        if pressed[pygame.K_LEFT]:
+            if pressed[pygame.K_DOWN]:
+                player.posx -= 3.5
+                player.posy += 3.5
+            if pressed[pygame.K_UP]:
+                player.posx -= 3.5
+                player.posy -= 3.5
+            if not (pressed[pygame.K_DOWN] or pressed[pygame.K_UP]):
+                player.posx -= 5
+        if pressed[pygame.K_RIGHT]:
+            if pressed[pygame.K_DOWN] and not pressed[pygame.K_LEFT]:
+                player.posx += 3.5
+                player.posy += 3.5
+            if pressed[pygame.K_UP] and not pressed[pygame.K_LEFT]:
+                player.posx += 3.5
+                player.posy -= 3.5
+            if not (pressed[pygame.K_DOWN] or pressed[pygame.K_UP]):
+                player.posx += 5
+        if not (pressed[pygame.K_LEFT] or pressed[pygame.K_RIGHT]):
+            if pressed[pygame.K_UP]:
+                player.posy -= 5
+            if pressed[pygame.K_DOWN]:
+                player.posy += 5
+        if not pressed[pygame.K_z]:
+            autofireTimer = 14
+        else:
+            autofireTimer += 1
+            if autofireTimer % 15 == 0:
+                projectiles.addProjectile(player.posx + 40, player.posy + 40, 8, 0, True)
+
         dtime = clock.tick(60)
 
+        print(math.sqrt((player.posx-oldx)**2 + (player.posy-oldy)**2))
+    
         screen.fill(pygame.Color('#496ddb'))
         drawWaves(screen)
+        drawGrass(screen)
 
         player.checkCollisions(projectiles, enemies)
         player.draw(screen)
@@ -180,8 +243,10 @@ def gameLoop():
         projectiles.update()
         projectiles.draw(screen)
 
+        enemyFireTimer += 1
         enemies.update(projectiles) #checking for collisions happens here
         enemies.checkAndSpawn()
+        enemies.checkAndFire(projectiles, player.posx, player.posy, enemyFireTimer)
         enemies.draw(screen)
 
         pygame.display.flip()
@@ -190,6 +255,6 @@ def gameLoop():
 loadResources()
 
 pygame.mixer.music.load('music.ogg') #kickass tunes
-#pygame.mixer.music.play(-1) #it irritates me atm
+pygame.mixer.music.play(-1) #it irritates me atm
 
 gameLoop()
