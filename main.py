@@ -20,7 +20,6 @@ class Player:
         screen.blit(self.graphics[self.animationCycle // 8], (self.posx, self.posy))
         self.animationCycle += 1
         self.animationCycle = self.animationCycle % 16
-player = Player(50, 280)
 
 class Enemy:
     def __init__(self, posx, posy, speedx, speedy):
@@ -54,9 +53,6 @@ class Enemies:
     def draw(self, screen):
         for enemy in self.enemies:
             enemy.draw(screen)
-
-enemies = Enemies();
-enemies.addEnemy(560, 280, -1, 2)
 
 class Projectile:
     def __init__(self, posx, posy, speedx, speedy):
@@ -105,6 +101,11 @@ def drawWaves(screen):
 
 
 def gameLoop():
+    player = Player(50, 280)
+
+    enemies = Enemies();
+    enemies.addEnemy(560, 280, -1, 2)
+
     while 1:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -122,5 +123,8 @@ def gameLoop():
         #print(1000 // dtime)
 
 loadResources()
+
+pygame.mixer.music.load('music.ogg')
+pygame.mixer.music.play(-1)
 
 gameLoop()
