@@ -45,11 +45,16 @@ class Enemies:
     enemies = []
     def addEnemy(self, posx, posy, speedx, speedy):
         self.enemies.append(Enemy(posx, posy, speedx, speedy))
-    def update(self):
+    def update(self, projectiles):
         for enemy in self.enemies:
             enemy.updatePosition()
             if enemy.posy < -80: #TODO: sprite sizes
                 self.enemies.remove(enemy)
+            for projectile in projectiles.projectiles:
+                if enemy.graphics[0].get_rect().move(enemy.posx, enemy.posy).inflate(-20, -20).colliderect(projectile.graphics[0].get_rect().move(projectile.posx, projectile.posy)):
+                    print('enemy hit')
+                    self.enemies.remove(enemy)
+                    projectiles.projectiles.remove(projectile)
     def draw(self, screen):
         for enemy in self.enemies:
             enemy.draw(screen)
@@ -61,7 +66,7 @@ class Projectile:
         self.speedx = speedx
         self.speedy = speedy
     graphics = []
-    graphics.append(pygame.transform.scale(pygame.image.load('tenryuu0.png'), (80, 80)))
+    graphics.append(pygame.transform.scale(pygame.image.load('projectile.png'), (30, 7)))
     def draw(self, screen):
         screen.blit(self.graphics[0], (self.posx, self.posy))
     def updatePosition(self): #TODO: update this so it complies with sprite sizes
@@ -103,8 +108,11 @@ def drawWaves(screen):
 def gameLoop():
     player = Player(50, 280)
 
-    enemies = Enemies();
-    enemies.addEnemy(560, 280, -1, 2)
+    enemies = Enemies()
+    enemies.addEnemy(560, 280, -1, 0)
+
+    projectiles = Projectiles()
+    projectiles.addProjectile(0, 280, 5, 0)
 
     while 1:
         for event in pygame.event.get():
@@ -116,7 +124,10 @@ def gameLoop():
         drawWaves(screen)
         player.draw(screen)
 
-        enemies.update()
+        projectiles.update()
+        projectiles.draw(screen)
+
+        enemies.update(projectiles)
         enemies.draw(screen)
 
         pygame.display.flip()
