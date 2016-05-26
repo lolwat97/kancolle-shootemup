@@ -62,6 +62,8 @@ def gameLoop():
     moon = pygame.font.Font(pygame.font.match_font('moon'), 16)
 
     while 1:
+        dtime = clock.tick(60)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
@@ -107,36 +109,34 @@ def gameLoop():
         elif player.posy < 0:
             player.posy = 0
             
+        player.checkCollisions(projectiles, enemies)
+        projectiles.update()
+        enemyFireTimer += 1
+        enemies.update(projectiles) #checking for collisions happens here
+        enemies.checkAndSpawn()
+        enemies.checkAndFire(projectiles, player.posx, player.posy, enemyFireTimer)
 
-        dtime = clock.tick(60)
+        if player.lives <= 0:
+            break
 
         screen.fill(pygame.Color('#496ddb'))
         drawWaves(screen)
         drawGrass(screen)
         drawHealth(screen, player.lives, moon)
         drawScore(screen, enemies.score, moon)
-        if player.lives <= 0:
-            break
 
-        player.checkCollisions(projectiles, enemies)
         player.draw(screen)
 
-        projectiles.update()
         projectiles.draw(screen)
 
-        enemyFireTimer += 1
-        enemies.update(projectiles) #checking for collisions happens here
-        enemies.checkAndSpawn()
-        enemies.checkAndFire(projectiles, player.posx, player.posy, enemyFireTimer)
         enemies.draw(screen)
 
         pygame.display.flip()
-        #print(1000 // dtime)
+        1000 // dtime
 
 loadResources()
 
 pygame.mixer.music.load('music.ogg') #kickass tunes
-pygame.mixer.music.play(-1) #it irritates me atm
 
 gameLoop()
 
