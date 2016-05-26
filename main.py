@@ -11,6 +11,14 @@ pygame.display.set_caption('fuck') #TODO: change
 
 clock = pygame.time.Clock()
 
+import time
+ 
+class Profiler(object):
+    def __enter__(self):
+        self._startTime = time.time()
+    def __exit__(self, type, value, traceback):
+        print ("Elapsed time: " + str(time.time() - self._startTime) + "secs")
+
 def loadResources():
     global waveSurface
     global grassSurface
@@ -119,11 +127,12 @@ def gameLoop():
         if player.lives <= 0:
             break
 
-        screen.fill(pygame.Color('#496ddb'))
-        drawWaves(screen)
-        drawGrass(screen)
-        drawHealth(screen, player.lives, moon)
-        drawScore(screen, enemies.score, moon)
+        with Profiler() as p:
+            screen.fill(pygame.Color('#496ddb'))
+            drawWaves(screen)
+            drawGrass(screen)
+            drawHealth(screen, player.lives, moon)
+            drawScore(screen, enemies.score, moon)
 
         player.draw(screen)
 
