@@ -48,6 +48,45 @@ def drawHealth(screen, health, font):
 def drawScore(screen, score, font):
     screen.blit(font.render(str(score), False, pygame.Color('#aa8888')), (windowWidth - 30, 2))
 
+def processInput(pressed, player, projectiles, autofireTimer):
+    if pressed[pygame.K_LEFT]:
+        if pressed[pygame.K_DOWN]:
+            player.posx -= 3.5
+            player.posy += 3.5
+        if pressed[pygame.K_UP]:
+            player.posx -= 3.5
+            player.posy -= 3.5
+        if not (pressed[pygame.K_DOWN] or pressed[pygame.K_UP]):
+            player.posx -= 5
+    if pressed[pygame.K_RIGHT]:
+        if pressed[pygame.K_DOWN] and not pressed[pygame.K_LEFT]:
+            player.posx += 3.5
+            player.posy += 3.5
+        if pressed[pygame.K_UP] and not pressed[pygame.K_LEFT]:
+            player.posx += 3.5
+            player.posy -= 3.5
+        if not (pressed[pygame.K_DOWN] or pressed[pygame.K_UP]):
+            player.posx += 5
+    if not (pressed[pygame.K_LEFT] or pressed[pygame.K_RIGHT]):
+        if pressed[pygame.K_UP]:
+            player.posy -= 5
+        if pressed[pygame.K_DOWN]:
+            player.posy += 5
+    if not pressed[pygame.K_z]:
+        autofireTimer = 14
+    else:
+        autofireTimer += 1
+        if autofireTimer % 15 == 0:
+            projectiles.addProjectile(player.posx + 50, player.posy + 69, 8, 0, True)
+    return autofireTimer
+
+def drawInterface(screen, player, enemies, moon):
+    screen.fill(pygame.Color('#496ddb'))
+    drawWaves(screen)
+    drawGrass(screen)
+    drawHealth(screen, player.lives, moon)
+    drawScore(screen, enemies.score, moon)
+
 def gameLoop():
     player = Player(50, 280, 100)
     autofireTimer = 14
@@ -69,37 +108,8 @@ def gameLoop():
                 sys.exit()
         
         pressed = pygame.key.get_pressed()
+        autofireTimer = processInput(pressed, player, projectiles, autofireTimer)
         
-        if pressed[pygame.K_LEFT]:
-            if pressed[pygame.K_DOWN]:
-                player.posx -= 3.5
-                player.posy += 3.5
-            if pressed[pygame.K_UP]:
-                player.posx -= 3.5
-                player.posy -= 3.5
-            if not (pressed[pygame.K_DOWN] or pressed[pygame.K_UP]):
-                player.posx -= 5
-        if pressed[pygame.K_RIGHT]:
-            if pressed[pygame.K_DOWN] and not pressed[pygame.K_LEFT]:
-                player.posx += 3.5
-                player.posy += 3.5
-            if pressed[pygame.K_UP] and not pressed[pygame.K_LEFT]:
-                player.posx += 3.5
-                player.posy -= 3.5
-            if not (pressed[pygame.K_DOWN] or pressed[pygame.K_UP]):
-                player.posx += 5
-        if not (pressed[pygame.K_LEFT] or pressed[pygame.K_RIGHT]):
-            if pressed[pygame.K_UP]:
-                player.posy -= 5
-            if pressed[pygame.K_DOWN]:
-                player.posy += 5
-        if not pressed[pygame.K_z]:
-            autofireTimer = 14
-        else:
-            autofireTimer += 1
-            if autofireTimer % 15 == 0:
-                projectiles.addProjectile(player.posx + 50, player.posy + 69, 8, 0, True)
-
         if player.posx < 0:
             player.posx = 0
         elif player.posx > windowWidth - 80:
@@ -119,11 +129,7 @@ def gameLoop():
         if player.lives <= 0:
             break
 
-        screen.fill(pygame.Color('#496ddb'))
-        drawWaves(screen)
-        drawGrass(screen)
-        drawHealth(screen, player.lives, moon)
-        drawScore(screen, enemies.score, moon)
+        drawInterface(screen, player, enemies, moon)
 
         player.draw(screen)
 
