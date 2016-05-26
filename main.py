@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import pygame, sys, math, random
+import pygame, sys, math, random, time
 from classes import Player, Enemy, Enemies, Projectile, Projectiles
 from settings import windowSize, windowWidth, windowHeight
 
@@ -10,6 +10,12 @@ screen = pygame.display.set_mode(windowSize)
 pygame.display.set_caption('fuck') #TODO: change
 
 clock = pygame.time.Clock()
+
+class Profiler(object):
+    def __enter__(self):
+        self.startTime = time.time()
+    def __exit__(self, type, value, traceback):
+        print ("elapsed time: " + str((time.time() - self.startTime)) + "secs")
 
 def loadResources():
     global waveSurface
@@ -129,7 +135,8 @@ def gameLoop():
         if player.lives <= 0:
             break
 
-        drawInterface(screen, player, enemies, moon)
+        with Profiler() as p:
+            drawInterface(screen, player, enemies, moon)
 
         player.draw(screen)
 
